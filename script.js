@@ -1,4 +1,3 @@
-
 const ICONS = [
     'apple', 'apricot', 'banana', 'big_win', 'cherry', 'grapes', 'lemon', 'lucky_seven', 'orange', 'pear', 'strawberry', 'watermelon',
 ];
@@ -14,14 +13,17 @@ const BASE_SPINNING_DURATION = 2.7;
  */
 const COLUMN_SPINNING_DURATION = 0.3;
 
+// Initialize score and tokens
+let playerScore = 0;
+let tokens = 0; // Initially, tokens are 0
+let spinsRemaining = 0; // Tracks remaining spins
 
 var cols;
 
-
 window.addEventListener('DOMContentLoaded', function(event) {
     cols = document.querySelectorAll('.col');
-
     setInitialItems();
+    updateScoreBoard();
 });
 
 function setInitialItems() {
@@ -44,21 +46,38 @@ function setInitialItems() {
     }
 }
 
-/**
- * Called when the start-button is pressed.
- *
- * @param elem The button itself
- */
-function spin(elem) {
-    let duration = BASE_SPINNING_DURATION + randomDuration();
+function dropTokens() {
+    let tokenInput = document.getElementById('token-input');
+    let tokensToDrop = parseInt(tokenInput.value);
 
+    if (tokensToDrop <= 0) {
+        alert('Please enter a valid number of tokens.');
+        return;
+    }
+
+    tokens += tokensToDrop; // Add tokens to player's total
+    spinsRemaining = tokens; // Set the number of spins based on the tokens dropped
+    updateScoreBoard();
+}
+
+function spin(elem) {
+    if (spinsRemaining <= 0) {
+        alert('You have no spins left! Drop tokens first.');
+        return;
+    }
+
+    spinsRemaining--; // Decrement the number of spins remaining
+    tokens--; // Deduct one token for each spin
+    updateScoreBoard();
+
+    let duration = BASE_SPINNING_DURATION + randomDuration();
+    
     for (let col of cols) { 
         duration += COLUMN_SPINNING_DURATION + randomDuration();
         col.style.animationDuration = duration + "s";
     }
 
     elem.setAttribute('disabled', true);
-
     document.getElementById('container').classList.add('spinning');
 
     window.setTimeout(setResult, BASE_SPINNING_DURATION * 1000 / 2);
@@ -70,8 +89,9 @@ function spin(elem) {
 }
 
 function setResult() {
-    for (let col of cols) {
+    let resultIcons = [];
 
+    for (let col of cols) {
         let results = [
             getRandomIcon(),
             getRandomIcon(),
@@ -83,7 +103,36 @@ function setResult() {
             icons[x].setAttribute('src', 'items/' + results[x] + '.png');
             icons[(icons.length - 3) + x].setAttribute('src', 'items/' + results[x] + '.png');
         }
+        
+        resultIcons.push(results);
     }
+
+    // Calculate score based on results
+    calculateScore(resultIcons);
+    updateScoreBoard();
+}
+
+function calculateScore(resultIcons) {
+    let win = false;
+    let scoreIncrement = 0;
+
+    // Check for matching icons across columns
+    for (let i = 0; i < resultIcons[0].length; i++) {
+        let iconSet = resultIcons.map(icons => icons[i]);
+        if (iconSet.every(icon => icon === iconSet[0])) {
+            win = true;
+            scoreIncrement += 10; // Example score increment per match
+        }
+    }
+
+    if (win) {
+        playerScore += scoreIncrement;
+    }
+}
+
+function updateScoreBoard() {
+    document.getElementById('score').textContent = playerScore;
+    // No need to display tokens as they are handled internally
 }
 
 function getRandomIcon() {
@@ -91,7 +140,7 @@ function getRandomIcon() {
 }
 
 /**
-   @returns {number}
+ * @returns {number}
  */
 function randomDuration() {
     return Math.floor(Math.random() * 10) / 100;
