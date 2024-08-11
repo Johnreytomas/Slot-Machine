@@ -168,3 +168,28 @@ body {
         transform: rotate(7deg);
     }
 }*/
+
+#score-board {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+#score-board p {
+    font-size: 1.2em;
+    margin: 0;
+}
+
+#token-controls {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#token-controls input {
+    width: 60px;
+    text-align: center;
+}
+
+#token-controls button {
+    margin-left: 10px;
+}
